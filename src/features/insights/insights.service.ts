@@ -22,6 +22,26 @@ export interface HealthIntelligenceData {
   recommendations: string[];
 }
 
+type DailyScoreRow = {
+  date: Date;
+  waterMl: number;
+  sugarG: number | null;
+  calories: number | null;
+  sleepHours: number | null;
+  steps: number | null;
+};
+
+type MealRow = {
+  loggedAt: Date;
+  sugarG: number;
+  foodClass: 'GREEN' | 'YELLOW' | 'RED';
+};
+
+type WeightLogRow = {
+  weightKg: number;
+  loggedAt: Date;
+};
+
 export async function getHealthIntelligence(userId: string): Promise<HealthIntelligenceData> {
   const today = startOfDay(new Date());
   const sevenDaysAgo = subDays(today, 7);
@@ -49,7 +69,7 @@ export async function getHealthIntelligence(userId: string): Promise<HealthIntel
       where: { userId, loggedAt: { gte: subDays(today, 10) } },
       orderBy: { loggedAt: 'desc' },
     }),
-  ]);
+  ]) as [DailyScoreRow[], MealRow[], WeightLogRow[]];
 
   // Determine TDEE (sedentary Mifflin-St Jeor)
   const latestWeight = weightLogs[0]?.weightKg ?? user?.weightGoal ?? 75;
@@ -57,9 +77,11 @@ export async function getHealthIntelligence(userId: string): Promise<HealthIntel
   const tdee = Math.round(bmr * 1.2);
 
   // Get today's stats from DB or local calculations
-  const todayScore = scores.find(s => s.date.getTime() === today.getTime());
+  const todayScore = scores.find((score: DailyScoreRow) => score.date.getTime() === today.getTime());
   const todayWater = todayScore?.waterMl ?? 0;
-  const todaySugar = meals.filter(m => startOfDay(m.loggedAt).getTime() === today.getTime()).reduce((s, m) => s + m.sugarG, 0);
+  const todaySugar = meals
+    .filter((meal: MealRow) => startOfDay(meal.loggedAt).getTime() === today.getTime())
+    .reduce((sum: number, meal: MealRow) => sum + meal.sugarG, 0);
 
   // --- A. SUGAR DAMAGE SCORE CALCULATION ---
   let avgSugar = 0;
@@ -67,9 +89,9 @@ export async function getHealthIntelligence(userId: string): Promise<HealthIntel
   let hasSugarExcessStreak = false;
 
   if (scores.length > 0) {
-    const totalSugar = scores.reduce((sum, s) => sum + (s.sugarG ?? 0), 0);
+    const totalSugar = scores.reduce((sum: number, score: DailyScoreRow) => sum + (score.sugarG ?? 0), 0);
     avgSugar = totalSugar / scores.length;
-    sugarVol = scores.filter(s => (s.sugarG ?? 0) > 25).length;
+    sugarVol = scores.filter((score: DailyScoreRow) => (score.sugarG ?? 0) > 25).length;
 
     // Check consecutive sugar excess days at the end of the window
     let consecutiveSugarDays = 0;
@@ -105,12 +127,12 @@ export async function getHealthIntelligence(userId: string): Promise<HealthIntel
   let weightVelocity = 0; // Positive if weight is rising
 
   if (scores.length > 0) {
-    const totalCals = scores.reduce((sum, s) => sum + (s.calories ?? 0), 0);
+    const totalCals = scores.reduce((sum: number, score: DailyScoreRow) => sum + (score.calories ?? 0), 0);
     avgCalories = totalCals / scores.length;
   }
 
   if (meals.length > 0) {
-    const redMealsCount = meals.filter(m => m.foodClass === 'RED').length;
+    const redMealsCount = meals.filter((meal: MealRow) => meal.foodClass === 'RED').length;
     redMealRatio = redMealsCount / meals.length;
   }
 
@@ -196,7 +218,7 @@ export async function getHealthIntelligence(userId: string): Promise<HealthIntel
 
   if (scores.length >= 3) {
     const last3Days = scores.slice(-3);
-    const avgSleep = last3Days.reduce((sum, s) => sum + (s.sleepHours ?? 0), 0) / 3;
+    const avgSleep = last3Days.reduce((sum: number, score: DailyScoreRow) => sum + (score.sleepHours ?? 0), 0) / 3;
     if (avgSleep < 6.5) {
       warnings.push('Sleep debt detected! Your average sleep over the last 3 days is below 6.5 hours.');
     }

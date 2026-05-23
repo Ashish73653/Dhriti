@@ -6,7 +6,7 @@ import { getOrCreateDailyScore } from '@/features/discipline/discipline.service'
 import { getHealthIntelligence } from '@/features/insights/insights.service';
 import { prisma } from '@/lib/prisma';
 import { DashboardGrid } from '@/components/dashboard/DashboardGrid';
-import { DashboardStats, DailyScoreDTO } from '@/types';
+import { DashboardStats, DailyScoreDTO, MealDTO } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,9 +26,9 @@ export default async function DashboardPage() {
     getHealthIntelligence(userId),
   ]);
 
-  const caloriesToday = meals.reduce((s, m) => s + m.calories, 0);
-  const sugarToday = meals.reduce((s, m) => s + m.sugarG, 0);
-  const proteinToday = meals.reduce((s, m) => s + m.proteinG, 0);
+  const caloriesToday = meals.reduce((sum: number, meal: MealDTO) => sum + meal.calories, 0);
+  const sugarToday = meals.reduce((sum: number, meal: MealDTO) => sum + meal.sugarG, 0);
+  const proteinToday = meals.reduce((sum: number, meal: MealDTO) => sum + meal.proteinG, 0);
 
   const mealCounts = meals.reduce(
     (acc, m) => {

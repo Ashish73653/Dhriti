@@ -36,9 +36,9 @@ Deploying this app on Vercel is the recommended path because it gives you a publ
 1. Push the repo to GitHub.
 2. In Vercel, create a new project and import this repository.
 3. Add these environment variables in Vercel:
-	- `DATABASE_URL` for a hosted Postgres database such as Neon, Supabase, or Vercel Postgres.
-	- `NEXTAUTH_SECRET` as a strong random string.
-	- `NEXTAUTH_URL` set to your deployed Vercel URL after the first deploy.
+   - `DATABASE_URL` for a hosted Postgres database such as Neon, Supabase, or Vercel Postgres.
+   - `NEXTAUTH_SECRET` as a strong random string.
+   - `NEXTAUTH_URL` set to your deployed Vercel URL after the first deploy.
 4. Deploy the project.
 5. Open the Vercel URL on your phone.
 6. On Android, use the browser menu to install the app.

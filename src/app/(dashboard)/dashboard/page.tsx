@@ -104,7 +104,13 @@ export default async function DashboardPage() {
 }
 
 function getGreeting() {
-  const h = new Date().getHours();
+  const h = Number(
+  new Date().toLocaleString('en-US', {
+    timeZone: 'Asia/Kolkata',
+    hour: 'numeric',
+    hour12: false,
+  })
+);
   if (h < 12) return 'morning';
   if (h < 17) return 'afternoon';
   return 'evening';

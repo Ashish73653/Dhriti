@@ -31,7 +31,7 @@ export default async function DashboardPage() {
   const proteinToday = meals.reduce((sum: number, meal: MealDTO) => sum + meal.proteinG, 0);
 
   const mealCounts = meals.reduce(
-    (acc, m) => {
+    (acc: { green: number; yellow: number; red: number; total: number }, m: MealDTO) => {
       if (m.foodClass === 'GREEN') acc.green++;
       else if (m.foodClass === 'YELLOW') acc.yellow++;
       else acc.red++;

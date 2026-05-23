@@ -8,6 +8,24 @@ type MealAggregateRow = {
   calories: number;
 };
 
+type DailyScoreRecord = {
+  id: string;
+  date: Date;
+  disciplineScore: number;
+  stepsScore: number;
+  sugarScore: number;
+  sleepScore: number;
+  caloriesScore: number;
+  waterScore: number;
+  workoutScore: number;
+  steps: number | null;
+  sleepHours: number | null;
+  sugarG: number | null;
+  calories: number | null;
+  waterMl: number;
+  workouts: number;
+};
+
 interface ScoreComponents {
   steps?: number | null;
   sleepHours?: number | null;
@@ -187,7 +205,7 @@ export async function getScoreHistory(userId: string, days = 30): Promise<DailyS
     where: { userId, date: { gte: from } },
     orderBy: { date: 'asc' },
   });
-  return records.map((r) => ({
+  return records.map((r: DailyScoreRecord) => ({
     id: r.id,
     date: r.date.toISOString(),
     disciplineScore: r.disciplineScore,

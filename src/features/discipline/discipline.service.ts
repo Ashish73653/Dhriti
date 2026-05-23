@@ -3,6 +3,11 @@ import { DISCIPLINE_RULES } from './discipline.rules';
 import { DailyScoreDTO } from '@/types';
 import { startOfDay } from 'date-fns';
 
+type MealAggregateRow = {
+  sugarG: number;
+  calories: number;
+};
+
 interface ScoreComponents {
   steps?: number | null;
   sleepHours?: number | null;
@@ -73,8 +78,8 @@ export async function getOrCreateDailyScore(userId: string, date: Date = new Dat
     },
   });
 
-  const sugarG = meals.reduce((s, m) => s + m.sugarG, 0);
-  const calories = meals.reduce((s, m) => s + m.calories, 0);
+  const sugarG = meals.reduce((sum: number, meal: MealAggregateRow) => sum + meal.sugarG, 0);
+  const calories = meals.reduce((sum: number, meal: MealAggregateRow) => sum + meal.calories, 0);
 
   const existing = await prisma.dailyScore.findUnique({
     where: { userId_date: { userId, date: day } },
@@ -145,8 +150,8 @@ export async function updateDailyMetrics(
   const meals = await prisma.meal.findMany({
     where: { userId, loggedAt: { gte: day, lt: new Date(day.getTime() + 86400000) } },
   });
-  const sugarG = meals.reduce((s, m) => s + m.sugarG, 0);
-  const calories = meals.reduce((s, m) => s + m.calories, 0);
+  const sugarG = meals.reduce((sum: number, meal: MealAggregateRow) => sum + meal.sugarG, 0);
+  const calories = meals.reduce((sum: number, meal: MealAggregateRow) => sum + meal.calories, 0);
 
   const merged = {
     steps: data.steps ?? existing?.steps,
